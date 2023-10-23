@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All tasks</title>
+</head>
+<body>
+{% for t in all_tasks %}
+    <p><a href="{% url 'task_detail' t.id %}">{{ t.title }}</a></p>
+{% endfor %}
+</body>
+</html>
