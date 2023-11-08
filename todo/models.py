@@ -1,5 +1,6 @@
 import datetime
 from django.db import models
+from django.utils import timezone
 
 
 class User(models.Model):
@@ -26,6 +27,8 @@ class Task(models.Model):
     def __str__(self):
         return self.title
 
+    def due_date_passed(self):
+        return self.due_date > timezone.now()
 
 class Project(models.Model):
     title = models.CharField(null=True, max_length=200
@@ -33,7 +36,7 @@ class Project(models.Model):
     hours = models.IntegerField(default=1)
     logo = models.ImageField(upload_to='images', null=True, blank=True)
     website = models.URLField(null=True, blank=True)
-
+    task = models.ManyToManyField(Task)
 
 
 

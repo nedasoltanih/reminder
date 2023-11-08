@@ -2,12 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>All tasks</title>
+    <title>Title</title>
 </head>
-{{ title }}
-{{ all_tasks.0 }}
 <body>
-{% for t in all_tasks %}
+{% for t in object_list %}
     <p><a href="{% url 'task_detail' t.id %}">{{ t.title }}</a></p>
 {% endfor %}
 </body>

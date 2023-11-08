@@ -2,19 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Task Detail</title>
+    <title>Title</title>
 </head>
 <body>
-<p>{{ task.title }}</p>
-<p>{{ task.due_date|date:"y/m/d" }}</p>
-<p>{{ task.category }}</p>
-<p>{{ task.user }}</p>
-{% if task.due_date_passed %}
+<p>{{ object.title }}</p>
+<p>{{ object.due_date|date:"y/m/d" }}</p>
+<p>{{ object.category }}</p>
+<p>{{ object.user }}</p>
+{% if object.due_date_passed %}
     <p>Due date passed!</p>
 {% else %}
     <p>Due date not passed yet!</p>
 {% endif %}
-
-
 </body>
 </html>
