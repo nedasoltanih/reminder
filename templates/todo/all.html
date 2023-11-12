@@ -5,7 +5,6 @@
     <title>All tasks</title>
 </head>
 {{ title }}
-{{ all_tasks.0 }}
 <body>
 {% for t in all_tasks %}
     <p><a href="{% url 'task_detail' t.id %}">{{ t.title }}</a></p>
