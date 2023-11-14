@@ -1,6 +1,8 @@
 from django.db import models
 from django.utils import timezone
 
+from todo.managers import AliManager, TaskManager, UserManager
+
 
 class User(models.Model):
     name = models.CharField(null=True, max_length=200)
@@ -9,6 +11,8 @@ class User(models.Model):
 
     def __str__(self):
         return self.name
+
+    objects = UserManager()
 
 
 class Task(models.Model):
@@ -25,6 +29,9 @@ class Task(models.Model):
                                     help_text="The time and date in which the task must be done!")
     creation_date = models.DateTimeField(editable=False, default=timezone.now)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+
+    objects = TaskManager()
+    ali_tasks = AliManager()
 
     def __str__(self):
         return self.title

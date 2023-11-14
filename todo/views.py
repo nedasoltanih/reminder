@@ -33,7 +33,8 @@ class TaskDetail(DetailView):
 
 
 def list(request):
-    tasks = Task.objects.all()
+    tasks = Task.ali_tasks.all()
+    # tasks = Task.objects.filter(user=1)
     # output = ",".join([t.title for t in tasks])
     template = loader.get_template('todo/all.html')
     return HttpResponse(template.render({'all_tasks': tasks, "title": "All tasks"}, request))
@@ -177,3 +178,10 @@ class AddTask(View):
             return HttpResponse("Saved!")
         else:
             return render(request, "todo/add_task.html", {"form": form})
+
+
+class NoTask(ListView):
+    model = User
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        return {"object_list": User.objects.users_with_no_task()}
