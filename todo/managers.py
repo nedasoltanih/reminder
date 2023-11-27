@@ -10,7 +10,7 @@ class TaskManager(Manager):
         return self.get_queryset().count()
 
 
-class UserManager(Manager):
+class PersonManager(Manager):
     def users_with_no_task(self):
         return self.get_queryset().annotate(
             task_count=Count("task")).filter(task_count=0)

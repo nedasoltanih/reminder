@@ -17,5 +17,8 @@ urlpatterns = [
     path("user_tasks/<int:pk>/", views.UserTasks.as_view(), name="user_tasks"),
     path("name/", views.Name.as_view(), name="name"),
     path("add_task/", views.AddTask.as_view(), name="add_task"),
-    path("no_task/", views.NoTask.as_view(), name="no_task")
+    # path("no_task/", views.NoTask.as_view(), name="no_task"),
+    path("logout/", views.Logout.as_view(), name="logout"),
+    # path("register/", views.Register.as_view(), name="register"),
+    path("register/", views.RegisterStudent.as_view(), name="register")
 ]

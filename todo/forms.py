@@ -1,5 +1,7 @@
 from django import forms
-from todo.models import Task
+from django.contrib.auth.models import User
+
+from todo.models import Task, Student
 
 
 class TaskForm(forms.ModelForm):
@@ -12,3 +14,22 @@ class NameForm(forms.Form):
     name = forms.CharField(label="Your name", max_length=40, widget=forms.Textarea)
     email = forms.EmailField()
     image = forms.ImageField(required=False)
+
+
+# class PersonForm(forms.ModelForm):
+#     class Meta:
+#         model = Person
+#         fields = ["first_name", "last_name", "username", "password", "email"]
+
+class StudentForm(forms.ModelForm):
+    class Meta:
+        model = Student
+        fields = ["std_no"]
+
+
+class UserForm(forms.ModelForm):
+    password = forms.CharField(max_length=20, widget='password')
+
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name", "username", "password", "email"]

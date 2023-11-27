@@ -1,12 +1,18 @@
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
 from django.template import loader
 from django.http import HttpResponse
 from django.views.generic import ListView, DetailView
 
-from .forms import NameForm, TaskForm
-from .models import Task, User
+from .forms import NameForm, TaskForm, StudentForm, UserForm
+from .models import Task, Student
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+
+# from django.contrib.auth.models import User
+# from .models import Person
 
 def index(request):
     if request.method == "GET":
@@ -44,8 +50,9 @@ class ListTasks(ListView):
     model = Task
 
 
-class ListUsers(ListView):
-    model = User
+class ListUsers(PermissionRequiredMixin, ListView):
+    permission_required = "django.contrib.auth.view_user"
+    # model = Person
 
 
 def new_task(request):
@@ -118,31 +125,57 @@ class Login(View):
         return HttpResponse(template.render({}, request))
 
     def post(self, request, *args, **kwargs):
-        usernames = User.objects.values_list("username")
-        for user in usernames:
-            if request.POST["username"] == user[0]:
-                user_info = User.objects.filter(username=user[0]).values_list("id", "password")
-                # print(request.POST["password"])
-                # print(password)
-                if request.POST["password"] == user_info[0][1]:
-                    # message = "Login successful!"
-                    return redirect(f"/todo/user_tasks/{user_info[0][0]}/")
-                else:
-                    message = "Wrong password!"
-                break
+        # usernames = User.objects.values_list("username")
+        # for user in usernames:
+        #     if request.POST["username"] == user[0]:
+        #         user_info = User.objects.filter(username=user[0]).values_list("id", "password")
+        #         # print(request.POST["password"])
+        #         # print(password)
+        #         if request.POST["password"] == user_info[0][1]:
+        #             # message = "Login successful!"
+        #             return redirect(f"/todo/user_tasks/{user_info[0][0]}/")
+        #         else:
+        #             message = "Wrong password!"
+        #         break
+        # else:
+        #     message = "User not found!"
+
+        user = authenticate(username=request.POST["username"], password=request.POST["password"])
+        if user:
+            login(request, user)
+            message = "Login successful!"
+            if request.GET.get("next", None):
+                return redirect(request.GET["next"])
         else:
-            message = "User not found!"
+            message = "User not found or wrong password!"
 
         template = loader.get_template('todo/login.html')
         return HttpResponse(template.render({'message': message}, request))
 
 
-class UserTasks(View):
+class Logout(View):
+    def get(self, request):
+        if request.user.is_authenticated:
+            return render(request, "todo/logout.html")
+        else:
+            return redirect("login")
+
+    def post(self, request):
+        logout(request)
+        return HttpResponse("Logout successful!")
+
+
+class UserTasks(LoginRequiredMixin, PermissionRequiredMixin, View):
+    login_url = '/todo/login/'
+    redirect_field_name = 'redirect_to'
+    permission_required = 'todo.view_tasks'
+
     def get(self, request, *args, **kwargs):
         tasks = Task.objects.filter(user=kwargs['pk'])
         template = loader.get_template('todo/all.html')
         return HttpResponse(template.render({'all_tasks': tasks, "title": "All tasks"}, request))
 
+# http://127.0.0.1:8000/todo/login/?next=/todo/user_tasks/1/
 
 class Name(View):
     def get(self, request):
@@ -180,8 +213,46 @@ class AddTask(View):
             return render(request, "todo/add_task.html", {"form": form})
 
 
-class NoTask(ListView):
-    model = User
+# class NoTask(ListView):
+#     model = Person
+#
+#     def get_context_data(self, *, object_list=None, **kwargs):
+#         return {"object_list": Person.objects.users_with_no_task()}
 
-    def get_context_data(self, *, object_list=None, **kwargs):
-        return {"object_list": User.objects.users_with_no_task()}
+
+# class Register(View):
+#     def get(self, request):
+#         form = PersonForm()
+#         return render(request, "todo/register.html", {"form":form})
+#
+#     def post(self, request):
+#         form = PersonForm(request.POST)
+#         if form.is_valid():
+#             # form.cleaned_data["is_active"] = False
+#             form.save()
+#             return HttpResponse("Success!")
+#         else:
+#             return render(request, "todo/register.html", {"form": form})
+
+class RegisterStudent(View):
+    def get(self, request):
+        form1 = StudentForm()
+        form2 = UserForm()
+        return render(request, "todo/register_std.html", {"form1": form1, "form2":form2})
+
+    def post(self, request):
+        form1 = StudentForm()
+        std = request.POST["std_no"]
+        form2 = UserForm(request.POST)
+        if form2.is_valid():
+            # form.cleaned_data["is_active"] = False
+            # form2.save()
+            user = User.objects.create_user(request.POST)
+            user.save()
+            # get id of this user and add to django_user field in student
+            # user = User.objects.latest("id")
+            student = Student(std_no=std)
+            student.save()
+            return HttpResponse("Success!")
+        else:
+            return render(request, "todo/register_std.html", {"form1": form1, "form2":form2})
