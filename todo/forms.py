@@ -28,7 +28,6 @@ class StudentForm(forms.ModelForm):
 
 
 class UserForm(forms.ModelForm):
-    password = forms.CharField(max_length=20, widget='password')
 
     class Meta:
         model = User

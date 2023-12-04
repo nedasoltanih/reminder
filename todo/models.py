@@ -5,8 +5,10 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth.models import User, PermissionsMixin, AbstractUser
-from todo.managers import AliManager, TaskManager, PersonManager
 
+from reminder import settings
+from todo.managers import AliManager, TaskManager, PersonManager
+import logging
 
 # class User(models.Model):
 #     name = models.CharField(null=True, max_length=200)
@@ -35,36 +37,31 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.std_no} - {self.django_user.first_name} {self.django_user.last_name}"
 
-    @receiver(post_save, sender=User)
-    def save(self):
-        self.django_user = User
-        super().save()
 
-
-class MyUser1(AbstractBaseUser, PermissionsMixin):
-    phone = models.CharField(max_length=11, unique=True)
-    first_name = models.CharField(max_length=20)
-    is_active = models.BooleanField('active', default=True)
-
-    USERNAME_FIELD = 'phone'
-    REQUIRED_FIELDS = ['phone']
-
-    def get_full_name(self):
-        full_name = '%s %s' % (self.first_name, self.last_name)
-        return full_name.strip()
-
-    def get_short_name(self):
-        return self.first_name
-
-    def email_user(self, subject, message, from_email=None, **kwargs):
-        send_mail(subject, message, from_email, [self.email], **kwargs)
-
-
-class MyUser2(AbstractUser):
-    bio = models.CharField(max_length=100)
-
-    def __str__(self):
-        return self.first_name
+# class MyUser1(AbstractBaseUser, PermissionsMixin):
+#     phone = models.CharField(max_length=11, unique=True)
+#     first_name = models.CharField(max_length=20)
+#     is_active = models.BooleanField('active', default=True)
+#
+#     USERNAME_FIELD = 'phone'
+#     REQUIRED_FIELDS = ['phone']
+#
+#     def get_full_name(self):
+#         full_name = '%s %s' % (self.first_name, self.last_name)
+#         return full_name.strip()
+#
+#     def get_short_name(self):
+#         return self.first_name
+#
+#     def email_user(self, subject, message, from_email=None, **kwargs):
+#         send_mail(subject, message, from_email, [self.email], **kwargs)
+#
+#
+# class MyUser2(AbstractUser):
+#     bio = models.CharField(max_length=100)
+#
+#     def __str__(self):
+#         return self.first_name
 
 
 
@@ -91,7 +88,21 @@ class Task(models.Model):
         return self.title
 
     def due_date_passed(self):
-        return self.due_date > timezone.now()
+        passed = self.due_date > timezone.now()
+        if passed:
+            send_mail(
+                subject = f'Your task {self.title} is due',
+                message = f'Your task {self.title} is due',
+                from_email = settings.EMAIL_HOST_USER,
+                recipient_list = [self.user.django_user.email]
+            )
+
+        return passed
+
+    def save(self):
+        super().save()
+        logging.getLogger("file_logger").warning("a task instance created.")
+
 
 
 class Project(models.Model):

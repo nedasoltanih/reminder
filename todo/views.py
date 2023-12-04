@@ -13,8 +13,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMix
 
 # from django.contrib.auth.models import User
 # from .models import Person
+import logging
+logger1 = logging.getLogger(__name__)
+logger2 = logging.getLogger("file_logger")
+
 
 def index(request):
+    logger2.error("index page is browsed!")
     if request.method == "GET":
         return HttpResponse("Hello, world. You're at the todo index.")
 
@@ -29,7 +34,10 @@ class Index(View):
 
 def task_detail(request, task_id=1):
     # task = Task.objects.get(pk=task_id)
-    task = get_object_or_404(Task, pk=task_id)
+    try:
+        task = Task.objects.get(pk=task_id)
+    except:
+        logger2.warning(f"Task with id {task_id} not found!")
     template = loader.get_template('todo/detail.html')
     return HttpResponse(template.render({'task': task}, request))
 
@@ -67,7 +75,8 @@ def new_task(request):
                         due_date=request.POST["due_date"])
             task.save()
             return HttpResponse("saved successfully")
-        except:
+        except Exception as e:
+            logger2.error(f"Error occured while creating task: {e}")
             return HttpResponse("Something went wrong!")
 
 
@@ -210,6 +219,7 @@ class AddTask(View):
             form.save()
             return HttpResponse("Saved!")
         else:
+            logger1.warning(f"Task is not created: {form.errors}")
             return render(request, "todo/add_task.html", {"form": form})
 
 
