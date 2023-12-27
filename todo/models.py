@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from django.contrib.auth.models import User, PermissionsMixin, AbstractUser
+from django.utils.text import slugify
 
 from reminder import settings
 from todo.managers import AliManager, TaskManager, PersonManager
@@ -79,10 +80,13 @@ class Task(models.Model):
     due_date = models.DateTimeField(default=timezone.now,
                                     help_text="The time and date in which the task must be done!")
     creation_date = models.DateTimeField(editable=False, default=timezone.now)
+    slug = models.SlugField(max_length=100, blank=True, null=True, editable=False)
+
     user = models.ForeignKey(Student, on_delete=models.CASCADE, null=True)
 
     objects = TaskManager()
     ali_tasks = AliManager()
+
 
     def __str__(self):
         return self.title
@@ -100,6 +104,7 @@ class Task(models.Model):
         return passed
 
     def save(self):
+        self.slug = slugify(self.title)
         super().save()
         logging.getLogger("file_logger").warning("a task instance created.")
 

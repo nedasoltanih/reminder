@@ -2,6 +2,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.template import loader
 from django.http import HttpResponse
+from django.utils.datetime_safe import datetime
 from django.views.generic import ListView, DetailView
 
 from .forms import NameForm, TaskForm, StudentForm, UserForm
@@ -20,6 +21,8 @@ logger2 = logging.getLogger("file_logger")
 
 def index(request):
     logger2.error("index page is browsed!")
+    # request.session['fav_color'] = 'blue'
+    print(request.COOKIES)
     if request.method == "GET":
         return HttpResponse("Hello, world. You're at the todo index.")
 
@@ -32,15 +35,16 @@ class Index(View):
         pass
 
 
-def task_detail(request, task_id=1):
+def task_detail(request, task_slug=""):
     # task = Task.objects.get(pk=task_id)
     try:
-        task = Task.objects.get(pk=task_id)
+        task = Task.objects.get(slug=task_slug)
+        template = loader.get_template('todo/detail.html')
+        return HttpResponse(template.render({'task': task}, request))
     except:
-        logger2.warning(f"Task with id {task_id} not found!")
-    template = loader.get_template('todo/detail.html')
-    return HttpResponse(template.render({'task': task}, request))
-
+        logger2.warning(f"Task with id {task_slug} not found!")
+        template = loader.get_template('todo/404.html')
+        return HttpResponse(template.render({}, request))
 
 class TaskDetail(DetailView):
     model = Task
@@ -56,6 +60,19 @@ def list(request):
 
 class ListTasks(ListView):
     model = Task
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super(ListTasks, self).get_context_data()
+        # context["color"] = self.request.session.get("color","black")
+        context["color"] = self.request.COOKIES.get("color","black")
+        return context
+
+    def post(self, request):
+        # request.session["color"] = request.POST["color"]
+        response = super().get(request)
+        response.set_cookie("color", request.POST["color"])
+        return response
+
 
 
 class ListUsers(PermissionRequiredMixin, ListView):
@@ -141,7 +158,8 @@ class Login(View):
         #         # print(request.POST["password"])
         #         # print(password)
         #         if request.POST["password"] == user_info[0][1]:
-        #             # message = "Login successful!"
+        #             message = "Login successful!"
+        #             request.session["user"] = user[0]
         #             return redirect(f"/todo/user_tasks/{user_info[0][0]}/")
         #         else:
         #             message = "Wrong password!"
@@ -159,7 +177,9 @@ class Login(View):
             message = "User not found or wrong password!"
 
         template = loader.get_template('todo/login.html')
-        return HttpResponse(template.render({'message': message}, request))
+        response = HttpResponse(template.render({'message': message}, request))
+        response.set_cookie("last_login", str(datetime.now()))
+        return response
 
 
 class Logout(View):
@@ -182,7 +202,8 @@ class UserTasks(LoginRequiredMixin, PermissionRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         tasks = Task.objects.filter(user=kwargs['pk'])
         template = loader.get_template('todo/all.html')
-        return HttpResponse(template.render({'all_tasks': tasks, "title": "All tasks"}, request))
+        last = request.COOKIES.get("last_login", None)
+        return HttpResponse(template.render({'all_tasks': tasks, "last_login": last}, request))
 
 # http://127.0.0.1:8000/todo/login/?next=/todo/user_tasks/1/
 

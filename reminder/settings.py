@@ -77,9 +77,21 @@ WSGI_APPLICATION = 'reminder.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': 'db.sqlite3',
     }
 }
+#DATABASES = {
+# 'default': {
+    # 'ENGINE': 'django.db.backends.postgresql_psycopg2',
+    # # 'NAME': 'mydb',
+    # # 'USER': 'postgres',
+    # # 'PASSWORD': 'password',
+    # # 'HOST': 'localhost',
+    # # 'PORT': '5432',
+    # "service": "my_service",
+    # "passfile": ".my_pgpass",
+    # }
+# }
 
 
 # Password validation
@@ -169,3 +181,20 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
+
+# CACHES = {
+#     "default":
+#         {
+#             "BACKEND": "django.core.cache.backends.db.FileChache",
+#             "LOCATION": "my_cache_table",
+#             "TIMEOUT": 60,
+#             "OPTIONS": {
+#                 "MAX_ENTRIES": 1000
+#             },
+#         }
+# }
+
+# SESSION_ENGINE = "django.contrib.sessions.backends.signed_cookies"
+# SESSION_FILE_PATH = "./sessions/"
+
+SESSION_COOKIE_AGE = 300
